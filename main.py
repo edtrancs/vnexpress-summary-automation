@@ -20,26 +20,52 @@ RSS_FEEDS = {
 }
 
 def get_article_text(url):
-    """Lấy full text từ URL bài báo"""
+    """Lấy full text từ URL bài báo VnExpress"""
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=15)
+        response.encoding = 'utf-8'
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Xóa các thẻ không cần thiết
-        for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
-            element.decompose()
+        # VnExpress specific selectors
+        content_parts = []
         
-        # Lấy text từ các paragraph
-        paragraphs = soup.find_all('p')
-        text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+        # 1. Lấy description/summary
+        description = soup.find('p', class_='description')
+        if description:
+            content_parts.append(description.get_text().strip())
         
-        return text[:3000]  # Giới hạn độ dài
+        # 2. Lấy nội dung chính - VnExpress dùng class 'Normal'
+        normal_content = soup.find_all('p', class_='Normal')
+        for p in normal_content:
+            text = p.get_text().strip()
+            if text and len(text) > 20:  # Lọc bỏ đoạn quá ngắn
+                content_parts.append(text)
+        
+        # 3. Fallback: nếu không tìm thấy, thử các selector khác
+        if not content_parts:
+            # Thử các class khác của VnExpress
+            for selector in ['.fck_detail', '.content_detail', 'article p', '.article-content p']:
+                elements = soup.select(selector)
+                for elem in elements:
+                    text = elem.get_text().strip()
+                    if text and len(text) > 20:
+                        content_parts.append(text)
+                if content_parts:
+                    break
+        
+        # Ghép tất cả lại
+        full_text = '\n\n'.join(content_parts)
+        
+        # Debug log
+        print(f"   Lấy được {len(full_text)} ký tự từ {url[:50]}...")
+        
+        return full_text[:4000]  # Tăng giới hạn lên 4000 ký tự
         
     except Exception as e:
-        print(f"Lỗi khi lấy text từ {url}: {e}")
+        print(f"   ❌ Lỗi khi lấy text từ {url}: {e}")
         return ""
 
 def summarize_with_claude(title, content, source):
