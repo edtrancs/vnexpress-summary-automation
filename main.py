@@ -9,10 +9,6 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import time
 
-# Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
-
 # Khởi tạo Claude client
 client = anthropic.Anthropic(
     api_key=os.environ.get('CLAUDE_API_KEY')
