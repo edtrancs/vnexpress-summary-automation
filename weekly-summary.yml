@@ -1,0 +1,32 @@
+name: Weekly Opinion Summary
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # 2AM UTC = 9AM Monday Vietnam time
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  send-summary:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run summary script
+      env:
+        CLAUDE_API_KEY: ${{ secrets.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 }}
+        GMAIL_EMAIL: ${{ secrets.edtrancs@gmail.com }}
+        GMAIL_APP_PASSWORD: ${{ secrets.cqfzphwwwnewrlfuD }}
+        RECIPIENT_EMAIL: ${{ secrets.edtrancs@gmail.com }}
+      run: python main.py
