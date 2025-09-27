@@ -10,7 +10,7 @@ I'm a massive fan of VNExpress *Góc nhìn* column, but Reading every article is
 * **Gmail** for email service for delivery
 * **launchd** on macOS for job scheduling
 
-![User Flow](docs/images/VNE-thumb.png)
+![User Flow](docs/VNE-thumb.png)
 
 ## Implementation
 
